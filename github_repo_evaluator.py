@@ -1,26 +1,46 @@
 import requests
+import os
+
+def get_github_headers():
+    token = os.getenv("GITHUB_TOKEN")
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    if token:
+        headers['Authorization'] = f'token {token}'
+    return headers
+
+def fetch_json(url, headers):
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"❌ Błąd pobierania {url}: {response.status_code}")
+        return None
 
 def get_repo_info(owner, repo):
     base_url = f"https://api.github.com/repos/{owner}/{repo}"
-    headers = {'Accept': 'application/vnd.github.v3+json'}
+    headers = get_github_headers()
 
-    repo_data = requests.get(base_url, headers=headers).json()
-    issues_data = requests.get(base_url + "/issues?state=open", headers=headers).json()
-    pulls_data = requests.get(base_url + "/pulls?state=open", headers=headers).json()
-    contributors_data = requests.get(base_url + "/contributors", headers=headers).json()
-    commits_data = requests.get(base_url + "/commits", headers=headers).json()
+    repo_data = fetch_json(base_url, headers)
+    if not repo_data:
+        print("Nie udało się pobrać danych repozytorium.")
+        return
 
-    print(f"\n📘 Repozytorium: {repo_data.get('full_name')}")
-    print(f"🌟 Gwiazdki: {repo_data.get('stargazers_count')}")
-    print(f"🍴 Forki: {repo_data.get('forks_count')}")
+    issues_data = fetch_json(f"{base_url}/issues?state=open&per_page=100", headers) or []
+    pulls_data = fetch_json(f"{base_url}/pulls?state=open&per_page=100", headers) or []
+    contributors_data = fetch_json(f"{base_url}/contributors?per_page=100", headers) or []
+    commits_data = fetch_json(f"{base_url}/commits?per_page=1", headers) or []
+
+    print(f"\n📘 Repozytorium: {repo_data.get('full_name', 'Brak')}")
+    print(f"🌟 Gwiazdki: {repo_data.get('stargazers_count', 0)}")
+    print(f"🍴 Forki: {repo_data.get('forks_count', 0)}")
     print(f"👥 Kontrybutorzy: {len(contributors_data)}")
-    print(f"📄 Licencja: {repo_data.get('license')['name'] if repo_data.get('license') else 'Brak'}")
-    print(f"🕒 Ostatni commit: {commits_data[0]['commit']['committer']['date'] if commits_data else 'Brak danych'}")
+    print(f"📄 Licencja: {repo_data.get('license', {}).get('name', 'Brak')}")
+    last_commit = commits_data[0]['commit']['committer']['date'] if commits_data else 'Brak danych'
+    print(f"🕒 Ostatni commit: {last_commit}")
     print(f"🐞 Otwarte issues: {len(issues_data)}")
     print(f"🔁 Otwarte PR: {len(pulls_data)}")
-    print(f"📦 Wersje (releases): {repo_data.get('releases_url').count('/')} (sprawdź ręcznie, API ma ograniczenia)\n")
+    print(f"📦 Wersje (releases): sprawdź ręcznie, API ma ograniczenia\n")
 
-    # Prosta ocena jakości
     score = 0
     if repo_data.get('stargazers_count', 0) > 100: score += 1
     if len(contributors_data) > 1: score += 1
@@ -33,4 +53,6 @@ def get_repo_info(owner, repo):
 
 # Przykład użycia:
 if __name__ == "__main__":
-    get_repo_info("psf", "requests")  # Zmień na dowolne repozytorium: "owner", "repo"
+    owner = input("Podaj nazwę właściciela repozytorium (owner): ")
+    repo = input("Podaj nazwę repozytorium (repo): ")
+    get_repo_info(owner, repo)
