@@ -2,4 +2,4 @@
 index cyber 
 First version
 Opensource Maturity Index 
-Assess opensource
+Assess opensource in terms of security
