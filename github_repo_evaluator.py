@@ -23,7 +23,7 @@ def get_repo_info(owner, repo):
     repo_data = fetch_json(base_url, headers)
     if not repo_data:
         print("Nie udało się pobrać danych repozytorium.")
-        return
+        return None
 
     issues_data = fetch_json(f"{base_url}/issues?state=open&per_page=100", headers) or []
     pulls_data = fetch_json(f"{base_url}/pulls?state=open&per_page=100", headers) or []
@@ -90,12 +90,39 @@ def get_repo_info(owner, repo):
 
     print(f"📊 Ocena jakości projektu: {int(score)}/100\n")
 
+    # Zwróć dane do porównania
+    return {
+        "full_name": repo_data.get('full_name', 'Brak'),
+        "score": int(score),
+        "stars": stars,
+        "contributors": contributors,
+        "issues": issues,
+        "pulls": pulls,
+        "license": repo_data.get('license', {}).get('name', 'Brak'),
+        "last_commit": last_commit
+    }
+
+def compare_repos(repo1, repo2):
+    print("\n🔎 Porównanie projektów:")
+    print(f"{repo1['full_name']} vs {repo2['full_name']}")
+    print(f"Ocena: {repo1['score']}/100 vs {repo2['score']}/100")
+    print(f"Gwiazdki: {repo1['stars']} vs {repo2['stars']}")
+    print(f"Kontrybutorzy: {repo1['contributors']} vs {repo2['contributors']}")
+    print(f"Otwarte issues: {repo1['issues']} vs {repo2['issues']}")
+    print(f"Otwarte PR: {repo1['pulls']} vs {repo2['pulls']}")
+    print(f"Licencja: {repo1['license']} vs {repo2['license']}")
+    print(f"Ostatni commit: {repo1['last_commit']} vs {repo2['last_commit']}\n")
+
 # Przykład użycia:
 if __name__ == "__main__":
+    previous_repo = None
     while True:
         owner = input("Podaj nazwę właściciela repozytorium (owner): ")
         repo = input("Podaj nazwę repozytorium (repo): ")
-        get_repo_info(owner, repo)
+        current_repo = get_repo_info(owner, repo)
+        if previous_repo and current_repo:
+            compare_repos(previous_repo, current_repo)
+        previous_repo = current_repo
         again = input("Czy chcesz sprawdzić inne repozytorium? (t/n): ")
         if again.lower() != "t":
             print("Koniec programu.")
