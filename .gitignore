@@ -1,0 +1,62 @@
+## Ignore Visual Studio temporary files, build results, and caches
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (Mono Auto Generated)
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache files
+.vs/
+.vscode/
+*.vscode/
+
+# Generated files
+Generated\ Files/
+
+# MSTest test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUNIT
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Build output
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+
+# Others
+*.dbmdl
+*.bak
+*.tmp
+*.vsidx
+
+# Rider
+.idea/
+
+# macOS junk
+.DS_Store

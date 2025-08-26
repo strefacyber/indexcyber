@@ -41,18 +41,62 @@ def get_repo_info(owner, repo):
     print(f"🔁 Otwarte PR: {len(pulls_data)}")
     print(f"📦 Wersje (releases): sprawdź ręcznie, API ma ograniczenia\n")
 
-    score = 0
-    if repo_data.get('stargazers_count', 0) > 100: score += 1
-    if len(contributors_data) > 1: score += 1
-    if len(issues_data) < 50: score += 1
-    if len(pulls_data) < 20: score += 1
-    if repo_data.get('license'): score += 1
-    if commits_data: score += 1
+    # Wagi dla poszczególnych metryk (suma = 100)
+    weights = {
+        'stars': 25,
+        'contributors': 20,
+        'issues': 15,
+        'pulls': 15,
+        'license': 10,
+        'commits': 15
+    }
 
-    print(f"📊 Ocena jakości projektu: {score}/6\n")
+    score = 0
+    # Gwiazdki: >100 = pełna waga, >50 = połowa wagi, inaczej 0
+    stars = repo_data.get('stargazers_count', 0)
+    if stars > 100:
+        score += weights['stars']
+    elif stars > 50:
+        score += weights['stars'] * 0.5
+
+    # Kontrybutorzy: >5 = pełna waga, >1 = połowa wagi, inaczej 0
+    contributors = len(contributors_data)
+    if contributors > 5:
+        score += weights['contributors']
+    elif contributors > 1:
+        score += weights['contributors'] * 0.5
+
+    # Issues: <20 = pełna waga, <50 = połowa wagi, inaczej 0
+    issues = len(issues_data)
+    if issues < 20:
+        score += weights['issues']
+    elif issues < 50:
+        score += weights['issues'] * 0.5
+
+    # Pull requests: <10 = pełna waga, <20 = połowa wagi, inaczej 0
+    pulls = len(pulls_data)
+    if pulls < 10:
+        score += weights['pulls']
+    elif pulls < 20:
+        score += weights['pulls'] * 0.5
+
+    # Licencja: obecna = pełna waga, brak = 0
+    if repo_data.get('license'):
+        score += weights['license']
+
+    # Commity: obecny commit = pełna waga, brak = 0
+    if commits_data:
+        score += weights['commits']
+
+    print(f"📊 Ocena jakości projektu: {int(score)}/100\n")
 
 # Przykład użycia:
 if __name__ == "__main__":
-    owner = input("Podaj nazwę właściciela repozytorium (owner): ")
-    repo = input("Podaj nazwę repozytorium (repo): ")
-    get_repo_info(owner, repo)
+    while True:
+        owner = input("Podaj nazwę właściciela repozytorium (owner): ")
+        repo = input("Podaj nazwę repozytorium (repo): ")
+        get_repo_info(owner, repo)
+        again = input("Czy chcesz sprawdzić inne repozytorium? (t/n): ")
+        if again.lower() != "t":
+            print("Koniec programu.")
+            break
